@@ -17,6 +17,80 @@ class Aluno
         $this->conexao = $conexao;
     }
 
+    // Retorna o maior RA numérico já cadastrado
+    public function obterUltimoRa()
+    {
+        $sql = "SELECT COALESCE(MAX(CAST(ra AS UNSIGNED)), 0) AS ultimo_ra FROM alunos";
+        $stmt = $this->conexao->query($sql);
+        $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return isset($resultado['ultimo_ra']) ? (int) $resultado['ultimo_ra'] : 0;
+    }
+
+    // Retorna o próximo RA sequencial esperado
+    public function obterProximoRa()
+    {
+        return $this->obterUltimoRa() + 1;
+    }
+
+    // Valida o RA para novos cadastros: apenas números, tamanho limitado e sequência correta
+    public function validarRaSequencial($ra)
+    {
+        $ra = trim((string) $ra);
+
+        if ($ra === '') {
+            return [
+                'valido' => false,
+                'mensagem' => 'Informe o RA.',
+                'ra' => '',
+            ];
+        }
+
+        if (!ctype_digit($ra)) {
+            return [
+                'valido' => false,
+                'mensagem' => 'O RA deve conter apenas números.',
+                'ra' => $ra,
+            ];
+        }
+
+        if (strlen($ra) > 20) {
+            return [
+                'valido' => false,
+                'mensagem' => 'O RA deve ter no máximo 20 caracteres.',
+                'ra' => $ra,
+            ];
+        }
+
+        $raNumero = (int) $ra;
+
+        if ($raNumero <= 0) {
+            return [
+                'valido' => false,
+                'mensagem' => 'O RA deve ser maior que zero.',
+                'ra' => $ra,
+            ];
+        }
+
+        $raEsperado = $this->obterProximoRa();
+
+        if ($raNumero !== $raEsperado) {
+            return [
+                'valido' => false,
+                'mensagem' => 'O próximo RA deve ser ' . $raEsperado . ', com base no maior RA já cadastrado.',
+                'ra' => (string) $raNumero,
+                'esperado' => $raEsperado,
+            ];
+        }
+
+        return [
+            'valido' => true,
+            'mensagem' => '',
+            'ra' => (string) $raNumero,
+            'esperado' => $raEsperado,
+        ];
+    }
+
     // Cadastrar um novo aluno (INSERT)
     public function cadastrar($nome, $ra, $curso)
     {

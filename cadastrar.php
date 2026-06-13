@@ -5,18 +5,34 @@ require_once 'config/conexao.php';
 require_once 'classes/Aluno.php';
 
 $aluno = new Aluno($conexao);
+$erro = '';
+$proximoRa = $aluno->obterProximoRa();
+$valores = [
+    'nome' => '',
+    'ra' => $proximoRa,
+    'curso' => '',
+];
 
 // Se o formulário foi enviado (POST), salva o aluno no banco
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nome = $_POST['nome'];
-    $ra = $_POST['ra'];
-    $curso = $_POST['curso'];
+    $valores['nome'] = trim($_POST['nome']);
+    $valores['ra'] = $_POST['ra'];
+    $valores['curso'] = trim($_POST['curso']);
 
-    $aluno->cadastrar($nome, $ra, $curso);
+    $validacaoRa = $aluno->validarRaSequencial($valores['ra']);
 
-    // Depois de salvar, volta para a lista de alunos
-    header('Location: index.php?msg=cadastrado');
-    exit;
+    if (!$validacaoRa['valido']) {
+        $erro = $validacaoRa['mensagem'];
+        $valores['ra'] = $validacaoRa['ra'];
+    } else {
+        $valores['ra'] = $validacaoRa['ra'];
+
+        $aluno->cadastrar($valores['nome'], $valores['ra'], $valores['curso']);
+
+        // Depois de salvar, volta para a lista de alunos
+        header('Location: index.php?msg=cadastrado');
+        exit;
+    }
 }
 
 require 'includes/cabecalho.php';
