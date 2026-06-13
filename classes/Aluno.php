@@ -22,22 +22,16 @@ class Aluno
     {
         $sql = "INSERT INTO alunos (nome, ra, curso) VALUES (?, ?, ?)";
         $stmt = $this->conexao->prepare($sql);
-        $stmt->bind_param('sss', $nome, $ra, $curso);
-        return $stmt->execute();
+        return $stmt->execute([$nome, $ra, $curso]);
     }
 
     // Listar todos os alunos cadastrados (SELECT)
     public function listarTodos()
     {
         $sql = "SELECT id, nome, ra, curso FROM alunos ORDER BY nome";
-        $resultado = $this->conexao->query($sql);
+        $stmt = $this->conexao->query($sql);
 
-        $alunos = [];
-        while ($linha = $resultado->fetch_assoc()) {
-            $alunos[] = $linha;
-        }
-
-        return $alunos;
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // Buscar um aluno pelo id (SELECT)
@@ -45,11 +39,9 @@ class Aluno
     {
         $sql = "SELECT id, nome, ra, curso FROM alunos WHERE id = ?";
         $stmt = $this->conexao->prepare($sql);
-        $stmt->bind_param('i', $id);
-        $stmt->execute();
+        $stmt->execute([$id]);
 
-        $resultado = $stmt->get_result();
-        return $resultado->fetch_assoc();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     // Atualizar os dados de um aluno (UPDATE)
@@ -57,8 +49,7 @@ class Aluno
     {
         $sql = "UPDATE alunos SET nome = ?, ra = ?, curso = ? WHERE id = ?";
         $stmt = $this->conexao->prepare($sql);
-        $stmt->bind_param('sssi', $nome, $ra, $curso, $id);
-        return $stmt->execute();
+        return $stmt->execute([$nome, $ra, $curso, $id]);
     }
 
     // Excluir um aluno (DELETE)
@@ -66,7 +57,6 @@ class Aluno
     {
         $sql = "DELETE FROM alunos WHERE id = ?";
         $stmt = $this->conexao->prepare($sql);
-        $stmt->bind_param('i', $id);
-        return $stmt->execute();
+        return $stmt->execute([$id]);
     }
 }

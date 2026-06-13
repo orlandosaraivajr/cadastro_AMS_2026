@@ -8,13 +8,16 @@ define('DB_USUARIO', 'root');
 define('DB_SENHA', '123mudar');
 define('DB_NOME', 'cadastro_ams');
 
-// Cria a conexão com o banco usando mysqli
-$conexao = new mysqli(DB_HOST, DB_USUARIO, DB_SENHA, DB_NOME);
+// Cria a conexão com o banco usando PDO
+try {
+    $conexao = new PDO(
+        'mysql:host=' . DB_HOST . ';dbname=' . DB_NOME . ';charset=utf8',
+        DB_USUARIO,
+        DB_SENHA
+    );
 
-// Verifica se a conexão deu certo
-if ($conexao->connect_error) {
-    die('Erro ao conectar no banco de dados: ' . $conexao->connect_error);
+    // Faz com que erros do banco lancem exceções
+    $conexao->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die('Erro ao conectar no banco de dados: ' . $e->getMessage());
 }
-
-// Define o charset para evitar problemas com acentuação
-$conexao->set_charset('utf8');
